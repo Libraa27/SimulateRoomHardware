@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../MQTT_Receiver/MQTT_Receiver.csproj" />
+  <Project Path="SimulateRoomHardware.csproj" />
+</Solution>
