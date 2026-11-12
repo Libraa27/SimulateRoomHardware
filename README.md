@@ -1,29 +1,140 @@
-# HỆ THỐNG MÔ PHỎNG GIÁM SÁT ĐIỆN NĂNG PHÒNG TRỌ THÔNG MINH (IoT-MQTT)
+# SimulateRoomHardware
 
-Dự án bài tập nhóm xây dựng hệ thống mô phỏng IoT giám sát công suất tiêu thụ điện và trạng thái thiết bị (Điều hòa) theo thời gian thực của các phòng trọ dựa trên giao thức MQTT (v5) và cấu trúc dữ liệu JSON.
+**A C# console application that simulates electricity usage and publishes room monitoring data through MQTT.**
 
-## 👥 THÀNH VIÊN VÀ CHI TIẾT PHÂN CÔNG CÔNG VIỆC
+## Overview
 
-Nhóm chúng em chủ động phân chia dự án thành 2 mảng rõ rệt: **Xử lý Hạ tầng Core bên dưới (Backend)** và **Xây dựng Ứng dụng quản lý đầu cuối (Application & Documentation)** để đảm bảo khối lượng công việc đồng đều.
+SimulateRoomHardware is a student IoT simulation project developed using C# and .NET. It generates simulated electricity consumption data for multiple rental rooms and publishes the measurements to a public MQTT broker.
 
-### 1. Bạn 1 (GitHub: @Libraa27) - Đảm nhận: Backend & Core Logic
-* **Thiết lập hạ tầng kết nối:** Nghiên cứu và cài đặt thư viện phần mềm `MQTTnet v5` qua NuGet.
-* **Xây dựng Trạm phát dữ liệu phần cứng (`SimulateRoomHardware`):**
-  * Thiết kế luồng truyền tải dữ liệu đa phòng (Phòng 101, 102, 103) lên các kênh (Topics) tương ứng.
-  * Viết thuật toán sinh số thông minh: Tự động nhận diện khung giờ hệ thống để giả lập công suất thực tế (Giờ cao điểm ban đêm tự động tăng tải tiêu thụ từ 800W-2000W và bật điều hòa; Giờ thấp điểm ban ngày tự động giảm tải).
-* **Xây dựng Trạm thu Console (`MQTT_Receiver`):** Cấu hình cơ chế lắng nghe, hứng trọn gói tin JSON từ Cloud Broker trực tuyến (`broker.emqx.io`) và bóc tách dữ liệu real-time.
+The application acts as a **virtual IoT device**, allowing MQTT communication and data processing to be explored without requiring physical sensors or ESP32 hardware.
 
-### 2. Anh (GitHub: @Tên_Tài_Khoản_Của_Anh) - Đảm nhận: Mobile App, Frontend & Documentation
-* **Xây dựng Ứng dụng Di động (`MQTT_Mobile_App`):**
-  * Thiết kế cấu trúc giao diện người dùng (UI) trên nền tảng chéo `.NET MAUI` để hiển thị trực quan dữ liệu phòng trọ dưới dạng các thẻ (Frames) theo dõi.
-  * Viết logic xử lý cập nhật giao diện không đồng bộ (`MainThread`) khi có gói tin MQTT đổ về để đảm bảo ứng dụng chạy mượt mà, không giật lag.
-* **Tối ưu hóa & Nghiệm thu:** Phối hợp kiểm thử kết nối chéo giữa hệ thống Console phát và Mobile thu để sửa các lỗi đồng bộ cú pháp payload dữ liệu.
-* **Tài liệu & Báo cáo:** Quản lý kho lưu trữ mã nguồn trên GitHub, viết tài liệu hướng dẫn (`README.md`) và hoàn thiện báo cáo/slide thuyết trình hệ thống trước giảng viên.
+## Features
 
----
+- Simulates electricity usage for three rooms: `101`, `102`, and `103`.
+- Generates power consumption values based on the current system time.
+- Simulates air conditioner status for each room.
+- Serializes room data into JSON messages.
+- Publishes data to room-specific MQTT topics.
+- Repeats the simulation approximately every second.
 
-## 🚀 KIẾN TRÚC HỆ THỐNG
-* **Data Source:** Bộ giả lập Console C# (`SimulateRoomHardware`).
-* **Message Broker:** EMQX Cloud Broker (`broker.emqx.io:1883`).
-* **Format:** JSON String (RoomNumber, TotalPower, IsAcOn, Timestamp).
-* **End-user Monitoring:** .NET MAUI Mobile App (`MQTT_Mobile_App`).
+## Technologies
+
+| Technology | Purpose |
+|---|---|
+| C# / .NET | Console application and simulation logic |
+| MQTTnet | MQTT client communication |
+| EMQX Public Broker | MQTT message delivery |
+| JSON | Structured monitoring data |
+
+## System Architecture
+
+```text
+SimulateRoomHardware (C#)
+          |
+          | JSON messages over MQTT
+          v
+  broker.emqx.io:1883
+          |
+          v
+ MQTT Subscribers
+ (monitoring applications)
+```
+
+This repository implements the **data simulation and publishing component**. MQTT receivers and mobile monitoring applications are separate components and are not included in this repository.
+
+## Simulated Data
+
+The application generates different electricity usage patterns based on the current local system time.
+
+| Period | Time | Power Consumption | AC On Probability |
+|---|---|---|---|
+| Daytime | 06:00–17:59 | 50–250 W | 15% |
+| Nighttime | 18:00–05:59 | 800–2000 W | 80% |
+
+These values are generated for demonstration purposes and do not represent measurements from physical electricity sensors.
+
+## MQTT Configuration
+
+**Broker:** `broker.emqx.io`
+
+**Port:** `1883` (unencrypted TCP)
+
+**Topics:**
+
+```text
+pms/rooms/101
+pms/rooms/102
+pms/rooms/103
+```
+
+Each MQTT message contains the following JSON fields:
+
+```json
+{
+  "RoomNumber": "101",
+  "TotalPower": 1250.5,
+  "IsAcOn": true,
+  "Timestamp": "2026-11-12 20:30:00"
+}
+```
+
+The example above is illustrative. Actual values are generated dynamically.
+
+## Getting Started
+
+### Prerequisites
+
+- .NET SDK compatible with the project
+- Internet connection to access the MQTT broker
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Libraa27/SimulateRoomHardware.git
+cd SimulateRoomHardware
+```
+
+### 2. Restore dependencies
+
+```bash
+dotnet restore
+```
+
+### 3. Run the application
+
+```bash
+dotnet run
+```
+
+The application connects to the public MQTT broker and continuously publishes simulated data for the three rooms.
+
+Stop the application with `Ctrl+C`.
+
+## How It Works
+
+1. The application connects to the EMQX public MQTT broker.
+2. It reads the current local system time.
+3. It generates simulated electricity consumption and air conditioner status for each room.
+4. It converts the generated data into JSON.
+5. It publishes the JSON payload to the corresponding MQTT topic.
+6. It waits approximately one second before repeating the process.
+
+## Limitations
+
+- The application uses simulated data rather than physical sensors.
+- MQTT communication uses an unencrypted public broker connection.
+- The simulation does not store historical electricity consumption.
+- The current implementation does not include a graphical interface.
+- The program runs continuously until manually stopped.
+
+## Project Context
+
+This repository was developed as part of a student project exploring IoT communication, electricity monitoring, and MQTT-based data exchange.
+
+It focuses on the software simulation component of a larger monitoring system.
+
+## Author
+
+**Truong Hoang Anh**
+
+GitHub: [@Libraa27](https://github.com/Libraa27)
